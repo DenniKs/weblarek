@@ -42,8 +42,7 @@ if (firstProduct && secondProduct) {
 }
 
 console.log('Покупатель: пустые данные', buyerModel.getData());
-console.log('Покупатель: валидация шага 1', buyerModel.validateOrderStep());
-console.log('Покупатель: валидация шага 2', buyerModel.validateContactsStep());
+console.log('Покупатель: валидация', buyerModel.validate());
 
 buyerModel.setAddress('Тест город, Тест улица 1');
 buyerModel.setPayment('card');
@@ -51,7 +50,7 @@ buyerModel.setEmail('buyer@example.com');
 buyerModel.setPhone('+79990000000');
 
 console.log('Покупатель: заполненные данные', buyerModel.getData());
-console.log('Покупатель: полная валидация', buyerModel.validateAll());
+console.log('Покупатель: валидация', buyerModel.validate());
 
 buyerModel.clear();
 console.log('Покупатель: после очистки', buyerModel.getData());

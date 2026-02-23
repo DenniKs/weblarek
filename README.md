@@ -248,9 +248,7 @@ interface IOrderResponse {
 - `setPhone(phone: string): void` сохраняет телефон.
 - `getData(): Partial<IBuyer>` возвращает данные покупателя.
 - `clear(): void` очищает данные покупателя.
-- `validateOrderStep(): Partial<Record<keyof IBuyer, string>>` валидирует поля `payment` и `address`.
-- `validateContactsStep(): Partial<Record<keyof IBuyer, string>>` валидирует поля `email` и `phone`.
-- `validateAll(): Partial<Record<keyof IBuyer, string>>` валидирует все поля оформления.
+- `validate(): Partial<Record<keyof IBuyer, string>>` валидирует все поля оформления и возвращает объект ошибок.
 
 Пример объекта ошибок валидации:
 

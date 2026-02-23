@@ -2,10 +2,8 @@ import { IBuyer, TPayment } from '../../types';
 
 export type TBuyerValidationErrors = Partial<Record<keyof IBuyer, string>>;
 
-const EMPTY_BUYER: Partial<IBuyer> = {};
-
 export class BuyerModel {
-	private data: Partial<IBuyer> = { ...EMPTY_BUYER };
+	private data: Partial<IBuyer> = {};
 
 	setData(data: Partial<IBuyer>): void {
 		this.data = {
@@ -35,10 +33,10 @@ export class BuyerModel {
 	}
 
 	clear(): void {
-		this.data = { ...EMPTY_BUYER };
+		this.data = {};
 	}
 
-	validateOrderStep(): TBuyerValidationErrors {
+	validate(): TBuyerValidationErrors {
 		const errors: TBuyerValidationErrors = {};
 
 		if (!this.data.payment) {
@@ -49,12 +47,6 @@ export class BuyerModel {
 			errors.address = 'Адрес обязателен';
 		}
 
-		return errors;
-	}
-
-	validateContactsStep(): TBuyerValidationErrors {
-		const errors: TBuyerValidationErrors = {};
-
 		if (!this.data.email?.trim()) {
 			errors.email = 'Email обязателен';
 		}
@@ -64,12 +56,5 @@ export class BuyerModel {
 		}
 
 		return errors;
-	}
-
-	validateAll(): TBuyerValidationErrors {
-		return {
-			...this.validateOrderStep(),
-			...this.validateContactsStep(),
-		};
 	}
 }
