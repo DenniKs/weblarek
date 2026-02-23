@@ -1,3 +1,6 @@
+﻿# Репозиторий
+https://github.com/DenniKs/weblarek
+
 # Проектная работа "Веб-ларек"
 
 Стек: HTML, SCSS, TS, Webpack
@@ -98,3 +101,181 @@ Presenter - презентер содержит основную логику п
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
 
+
+## Данные
+
+В приложении используются две основные сущности: товар и покупатель.
+
+### Интерфейс товара
+
+```ts
+interface IProduct {
+  id: string;
+  description: string;
+  image: string;
+  title: string;
+  category: string;
+  price: number | null;
+}
+```
+
+Назначение:
+- Описывает карточку товара, получаемую с API и используемую в каталоге и корзине.
+- Поле `price` может быть `null`, что обозначает недоступность товара для покупки.
+
+### Тип способа оплаты
+
+```ts
+type TPayment = 'card' | 'cash';
+```
+
+Назначение:
+- Ограничивает допустимые значения способа оплаты на этапе оформления заказа.
+
+### Интерфейс покупателя
+
+```ts
+interface IBuyer {
+  payment: TPayment;
+  email: string;
+  phone: string;
+  address: string;
+}
+```
+
+Назначение:
+- Описывает данные покупателя, заполняемые на форме оформления.
+
+### Интерфейс ответа каталога
+
+```ts
+interface IProductsResponse {
+  total: number;
+  items: IProduct[];
+}
+```
+
+Назначение:
+- Описывает ответ API при загрузке каталога товаров.
+
+### Интерфейс запроса заказа
+
+```ts
+interface IOrderRequest extends IBuyer {
+  items: string[];
+  total: number;
+}
+```
+
+Назначение:
+- Описывает payload, отправляемый на эндпоинт `/order/`.
+- Содержит данные покупателя, id выбранных товаров и итоговую сумму заказа.
+
+### Интерфейс ответа заказа
+
+```ts
+interface IOrderResponse {
+  id: string;
+  total: number;
+}
+```
+
+Назначение:
+- Описывает успешный ответ сервера после создания заказа.
+
+## Модели данных
+
+Модели данных отвечают только за хранение и обработку данных. Они не рендерят интерфейс и не зависят от классов представления.
+
+### `CatalogModel`
+
+Зона ответственности:
+- Хранит массив всех товаров каталога.
+- Хранит товар, выбранный для детального просмотра.
+
+Конструктор:
+- Конструктор по умолчанию, без параметров.
+
+Поля:
+- `items: IProduct[]` хранит все товары каталога.
+- `previewItem: IProduct | null` хранит товар для модального предпросмотра.
+
+Методы:
+- `setItems(items: IProduct[]): void` сохраняет массив товаров.
+- `getItems(): IProduct[]` возвращает массив товаров каталога.
+- `getItemById(id: string): IProduct | undefined` возвращает товар по id.
+- `setPreviewItem(item: IProduct | null): void` сохраняет товар для предпросмотра.
+- `getPreviewItem(): IProduct | null` возвращает выбранный товар предпросмотра.
+
+### `BasketModel`
+
+Зона ответственности:
+- Хранит товары, добавленные в корзину.
+- Считает итоговую стоимость и количество товаров.
+
+Конструктор:
+- Конструктор по умолчанию, без параметров.
+
+Поля:
+- `items: IProduct[]` хранит товары в корзине.
+
+Методы:
+- `getItems(): IProduct[]` возвращает товары корзины.
+- `addItem(item: IProduct): void` добавляет товар, если его еще нет в корзине.
+- `removeItem(item: IProduct): void` удаляет товар из корзины.
+- `clear(): void` очищает корзину.
+- `getTotalPrice(): number` возвращает сумму корзины (`null`-цена считается как `0`).
+- `getCount(): number` возвращает количество товаров в корзине.
+- `hasItem(id: string): boolean` проверяет наличие товара в корзине по id.
+
+### `BuyerModel`
+
+Зона ответственности:
+- Хранит данные покупателя для оформления заказа.
+- Валидирует поля формы оформления.
+
+Конструктор:
+- Конструктор по умолчанию, без параметров.
+
+Поля:
+- `data: Partial<IBuyer>` хранит текущие данные покупателя.
+
+Методы:
+- `setData(data: Partial<IBuyer>): void` обновляет часть данных без потери уже заполненных полей.
+- `setPayment(payment: TPayment): void` сохраняет способ оплаты.
+- `setAddress(address: string): void` сохраняет адрес.
+- `setEmail(email: string): void` сохраняет email.
+- `setPhone(phone: string): void` сохраняет телефон.
+- `getData(): Partial<IBuyer>` возвращает данные покупателя.
+- `clear(): void` очищает данные покупателя.
+- `validateOrderStep(): Partial<Record<keyof IBuyer, string>>` валидирует поля `payment` и `address`.
+- `validateContactsStep(): Partial<Record<keyof IBuyer, string>>` валидирует поля `email` и `phone`.
+- `validateAll(): Partial<Record<keyof IBuyer, string>>` валидирует все поля оформления.
+
+Пример объекта ошибок валидации:
+
+```ts
+{
+  payment: 'Способ оплаты обязателен',
+  email: 'Email обязателен'
+}
+```
+
+## Слой коммуникации
+
+### `WebLarekApi`
+
+Зона ответственности:
+- Работает с API через композицию с базовым классом `Api`.
+- Получает товары и отправляет заказ.
+
+Конструктор:
+- `constructor(api: IApi)`
+- `api: IApi` — объект, реализующий методы `get` и `post`.
+
+Поля:
+- `api: IApi` хранит зависимость для HTTP-запросов.
+
+Методы:
+- `getProducts(): Promise<IProductsResponse>` выполняет `GET /product/`.
+- `createOrder(order: IOrderRequest): Promise<IOrderResponse>` выполняет `POST /order/`.
