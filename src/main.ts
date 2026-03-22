@@ -17,6 +17,7 @@ import { OrderFormView } from './components/view/forms/OrderFormView';
 import { IOrderRequest, TPayment } from './types';
 import { API_URL, EVENTS } from './utils/constants';
 import { cloneTemplate, ensureElement } from './utils/utils';
+import { apiProducts } from './utils/data';
 
 type ModalState = 'preview' | 'basket' | 'order' | 'contacts' | 'success' | null;
 
@@ -28,8 +29,9 @@ const catalogModel = new CatalogModel(events);
 const basketModel = new BasketModel(events);
 const buyerModel = new BuyerModel(events);
 
+const pageWrapper = ensureElement<HTMLElement>('.page__wrapper', document.body);
 const page = new Page(document.body, events);
-const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
+const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), pageWrapper, events);
 
 let modalState: ModalState = null;
 
@@ -305,4 +307,5 @@ webLarekApi
 	})
 	.catch((error: unknown) => {
 		console.error('Ошибка загрузки каталога', error);
+		catalogModel.setItems(apiProducts.items);
 	});

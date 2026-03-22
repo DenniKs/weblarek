@@ -10,13 +10,13 @@ interface IModalViewData {
 export class Modal extends Component<IModalViewData> {
 	private readonly closeButton: HTMLButtonElement;
 	private readonly contentElement: HTMLElement;
-	private readonly pageWrapper?: HTMLElement;
+	private readonly pageWrapper: HTMLElement;
 
-	constructor(container: HTMLElement, private readonly events: IEvents) {
+	constructor(container: HTMLElement, pageWrapper: HTMLElement, private readonly events: IEvents) {
 		super(container);
 		this.closeButton = ensureElement<HTMLButtonElement>('.modal__close', this.container);
 		this.contentElement = ensureElement<HTMLElement>('.modal__content', this.container);
-		this.pageWrapper = document.querySelector<HTMLElement>('.page__wrapper') ?? undefined;
+		this.pageWrapper = pageWrapper;
 
 		this.closeButton.addEventListener('click', () => this.handleClose());
 		this.container.addEventListener('click', (event) => {
@@ -33,13 +33,13 @@ export class Modal extends Component<IModalViewData> {
 	open(content: HTMLElement): void {
 		this.render({ content });
 		this.container.classList.add('modal_active');
-		this.pageWrapper?.classList.add('page__wrapper_locked');
+		this.pageWrapper.classList.add('page__wrapper_locked');
 	}
 
 	close(): void {
 		this.container.classList.remove('modal_active');
 		this.contentElement.replaceChildren();
-		this.pageWrapper?.classList.remove('page__wrapper_locked');
+		this.pageWrapper.classList.remove('page__wrapper_locked');
 	}
 
 	private handleClose(): void {

@@ -2,11 +2,11 @@ export function pascalToKebab(value: string): string {
     return value.replace(/([a-z0–9])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
-export function isSelector(x: any): x is string {
+export function isSelector(x: unknown): x is string {
     return (typeof x === "string") && x.length > 1;
 }
 
-export function isEmpty(value: any): boolean {
+export function isEmpty(value: unknown): boolean {
     return value === null || value === undefined;
 }
 
@@ -84,7 +84,10 @@ export function setElementData<T extends Record<string, unknown> | object>(el: H
 /**
  * Получает типизированные данные из dataset атрибутов элемента
  */
-export function getElementData<T extends Record<string, unknown>>(el: HTMLElement, scheme: Record<string, Function>): T {
+export function getElementData<T extends Record<string, unknown>>(
+    el: HTMLElement,
+    scheme: Record<string, (value: string | undefined) => T[keyof T]>
+): T {
     const data: Partial<T> = {};
     for (const key in el.dataset) {
         data[key as keyof T] = scheme[key](el.dataset[key]);
@@ -114,7 +117,7 @@ export function createElement<
     T extends HTMLElement
     >(
     tagName: keyof HTMLElementTagNameMap,
-    props?: Partial<Record<keyof T, string | boolean | object>>,
+    props?: Partial<Record<keyof T, unknown>>,
     children?: HTMLElement | HTMLElement []
 ): T {
     const element = document.createElement(tagName) as T;
@@ -124,8 +127,8 @@ export function createElement<
             if (isPlainObject(value) && key === 'dataset') {
                 setElementData(element, value);
             } else {
-                // @ts-expect-error fix indexing later
-                element[key] = isBoolean(value) ? value : String(value);
+                const target = element as HTMLElement & Record<string, unknown>;
+                target[key] = isBoolean(value) ? value : String(value);
             }
         }
     }
