@@ -36,3 +36,59 @@ export interface IOrderResponse {
     id: string;
     total: number;
 }
+
+export type TBuyerStep = 'order' | 'contacts';
+
+export interface IAppEvents {
+    'catalog:changed': void;
+    'preview:changed': void;
+    'basket:changed': void;
+    'buyer:changed': void;
+    'card:selected': { id: string };
+    'card:buy-toggle': { id: string };
+    'basket:open': void;
+    'basket:checkout': void;
+    'basket:item-remove': { id: string };
+    'order:field-change': { field: 'address' | 'payment'; value: string };
+    'order:submit': void;
+    'contacts:field-change': { field: 'email' | 'phone'; value: string };
+    'contacts:submit': void;
+    'modal:close': void;
+    'success:close': void;
+}
+
+export interface ICatalogCardViewData extends IProduct {
+    inBasket: boolean;
+}
+
+export interface IPreviewCardViewData extends IProduct {
+    inBasket: boolean;
+}
+
+export interface IBasketItemViewData extends Pick<IProduct, 'id' | 'title' | 'price'> {
+    index: number;
+}
+
+export interface IBasketViewData {
+    items: HTMLElement[];
+    total: number;
+    canCheckout: boolean;
+}
+
+export interface IOrderFormViewData {
+    payment?: TPayment;
+    address?: string;
+    isValid: boolean;
+    errors: string[];
+}
+
+export interface IContactsFormViewData {
+    email?: string;
+    phone?: string;
+    isValid: boolean;
+    errors: string[];
+}
+
+export interface ISuccessViewData {
+    total: number;
+}

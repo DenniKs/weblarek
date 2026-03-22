@@ -1,15 +1,20 @@
+import { IEvents } from '../base/Events';
 import { IBuyer, TPayment } from '../../types';
+import { EVENTS } from '../../utils/constants';
 
 export type TBuyerValidationErrors = Partial<Record<keyof IBuyer, string>>;
 
 export class BuyerModel {
 	private data: Partial<IBuyer> = {};
 
+	constructor(private readonly events: IEvents) {}
+
 	setData(data: Partial<IBuyer>): void {
 		this.data = {
 			...this.data,
 			...data,
 		};
+		this.events.emit(EVENTS.BUYER_CHANGED);
 	}
 
 	setPayment(payment: TPayment): void {
@@ -34,6 +39,7 @@ export class BuyerModel {
 
 	clear(): void {
 		this.data = {};
+		this.events.emit(EVENTS.BUYER_CHANGED);
 	}
 
 	validate(): TBuyerValidationErrors {
