@@ -45,7 +45,7 @@ export interface IAppEvents {
     'basket:changed': void;
     'buyer:changed': void;
     'card:selected': { id: string };
-    'card:buy-toggle': { id: string };
+    'card:buy-toggle': void;
     'basket:open': void;
     'basket:checkout': void;
     'basket:item-remove': { id: string };
@@ -57,12 +57,9 @@ export interface IAppEvents {
     'success:close': void;
 }
 
-export interface ICatalogCardViewData extends IProduct {
-    inBasket: boolean;
-}
+export interface ICatalogCardViewData extends IProduct {}
 
 export interface IPreviewCardViewData extends IProduct {
-    inBasket: boolean;
 }
 
 export interface IBasketItemViewData extends Pick<IProduct, 'id' | 'title' | 'price'> {
@@ -76,15 +73,15 @@ export interface IBasketViewData {
 }
 
 export interface IOrderFormViewData {
-    payment?: TPayment;
-    address?: string;
+    payment: TPayment | '';
+    address: string;
     isValid: boolean;
     errors: string[];
 }
 
 export interface IContactsFormViewData {
-    email?: string;
-    phone?: string;
+    email: string;
+    phone: string;
     isValid: boolean;
     errors: string[];
 }

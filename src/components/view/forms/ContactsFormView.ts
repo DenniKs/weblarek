@@ -8,12 +8,12 @@ export class ContactsFormView extends FormView<IContactsFormViewData> {
 		super(container);
 	}
 
-	set email(value: string | undefined) {
-		this.setInputValue('email', value ?? '');
+	set email(value: string) {
+		this.setInputValue('email', value);
 	}
 
-	set phone(value: string | undefined) {
-		this.setInputValue('phone', value ?? '');
+	set phone(value: string) {
+		this.setInputValue('phone', value);
 	}
 
 	protected handleFieldChange(name: string, value: string): void {

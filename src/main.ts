@@ -17,7 +17,6 @@ import { OrderFormView } from './components/view/forms/OrderFormView';
 import { IOrderRequest, TPayment } from './types';
 import { API_URL, EVENTS } from './utils/constants';
 import { cloneTemplate, ensureElement } from './utils/utils';
-import { apiProducts } from './utils/data';
 
 type ModalState = 'preview' | 'basket' | 'order' | 'contacts' | 'success' | null;
 
@@ -32,6 +31,11 @@ const buyerModel = new BuyerModel(events);
 const pageWrapper = ensureElement<HTMLElement>('.page__wrapper', document.body);
 const page = new Page(document.body, events);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), pageWrapper, events);
+const basketView = new BasketView(cloneTemplate<HTMLElement>('#basket'), events);
+const previewCard = new PreviewCard(cloneTemplate<HTMLElement>('#card-preview'), events);
+const orderForm = new OrderFormView(cloneTemplate<HTMLElement>('#order'), events);
+const contactsForm = new ContactsFormView(cloneTemplate<HTMLElement>('#contacts'), events);
+const successView = new SuccessView(cloneTemplate<HTMLElement>('#success'), events);
 
 let modalState: ModalState = null;
 
@@ -63,11 +67,10 @@ const isContactsValid = (): boolean => {
 
 const renderCatalog = (): void => {
 	const cards = catalogModel.getItems().map((item) => {
-		const card = new CatalogCard(cloneTemplate<HTMLElement>('#card-catalog'), events);
-		return card.render({
-			...item,
-			inBasket: basketModel.hasItem(item.id),
+		const card = new CatalogCard(cloneTemplate<HTMLElement>('#card-catalog'), {
+			onClick: () => catalogModel.setPreviewItem(item),
 		});
+		return card.render(item);
 	});
 
 	page.render({
@@ -78,7 +81,7 @@ const renderCatalog = (): void => {
 
 const openBasket = (): void => {
 	const basketItems = basketModel.getItems().map((item, index) => {
-		const basketCard = new BasketCard(cloneTemplate<HTMLElement>('#card-basket'), events);
+		const basketCard = new BasketCard(cloneTemplate<HTMLElement>('#card-basket'), events, item.id);
 		return basketCard.render({
 			id: item.id,
 			title: item.title,
@@ -87,7 +90,6 @@ const openBasket = (): void => {
 		});
 	});
 
-	const basketView = new BasketView(cloneTemplate<HTMLElement>('#basket'), events);
 	const basketElement = basketView.render({
 		items: basketItems,
 		total: basketModel.getTotalPrice(),
@@ -104,11 +106,11 @@ const openPreview = (): void => {
 		return;
 	}
 
-	const previewCard = new PreviewCard(cloneTemplate<HTMLElement>('#card-preview'), events);
-	const previewElement = previewCard.render({
-		...previewItem,
-		inBasket: basketModel.hasItem(previewItem.id),
-	});
+	const previewElement = previewCard.render(previewItem);
+	const isAvailable = previewItem.price !== null;
+	const isInBasket = basketModel.hasItem(previewItem.id);
+	const buttonText = !isAvailable ? 'Недоступно' : isInBasket ? 'Удалить из корзины' : 'Купить';
+	previewCard.setActionButton(buttonText, !isAvailable);
 
 	modalState = 'preview';
 	modal.open(previewElement);
@@ -116,7 +118,6 @@ const openPreview = (): void => {
 
 const openOrderForm = (): void => {
 	const buyerData = buyerModel.getData();
-	const orderForm = new OrderFormView(cloneTemplate<HTMLElement>('#order'), events);
 	const orderElement = orderForm.render({
 		payment: buyerData.payment,
 		address: buyerData.address,
@@ -130,7 +131,6 @@ const openOrderForm = (): void => {
 
 const openContactsForm = (): void => {
 	const buyerData = buyerModel.getData();
-	const contactsForm = new ContactsFormView(cloneTemplate<HTMLElement>('#contacts'), events);
 	const contactsElement = contactsForm.render({
 		email: buyerData.email,
 		phone: buyerData.phone,
@@ -143,7 +143,6 @@ const openContactsForm = (): void => {
 };
 
 const openSuccess = (total: number): void => {
-	const successView = new SuccessView(cloneTemplate<HTMLElement>('#success'), events);
 	const successElement = successView.render({ total });
 	modalState = 'success';
 	modal.open(successElement);
@@ -151,12 +150,8 @@ const openSuccess = (total: number): void => {
 
 const submitOrder = (): void => {
 	const data = buyerModel.getData();
-	if (!data.payment || !data.address || !data.email || !data.phone) {
-		return;
-	}
-
 	const order: IOrderRequest = {
-		payment: data.payment,
+		payment: data.payment as TPayment,
 		address: data.address,
 		email: data.email,
 		phone: data.phone,
@@ -208,18 +203,13 @@ events.on(EVENTS.PREVIEW_CHANGED, () => {
 	}
 });
 
-events.on<{ id: string }>(EVENTS.CARD_SELECTED, ({ id }) => {
-	const item = catalogModel.getItemById(id) ?? null;
-	catalogModel.setPreviewItem(item);
-});
-
-events.on<{ id: string }>(EVENTS.CARD_BUY_TOGGLED, ({ id }) => {
-	const item = catalogModel.getItemById(id);
+events.on(EVENTS.CARD_BUY_TOGGLED, () => {
+	const item = catalogModel.getPreviewItem();
 	if (!item || item.price === null) {
 		return;
 	}
 
-	if (basketModel.hasItem(id)) {
+	if (basketModel.hasItem(item.id)) {
 		basketModel.removeItem(item);
 	} else {
 		basketModel.addItem(item);
@@ -258,12 +248,7 @@ events.on<{ field: 'address' | 'payment'; value: string }>(EVENTS.ORDER_FIELD_CH
 });
 
 events.on(EVENTS.ORDER_SUBMIT, () => {
-	if (isOrderValid()) {
-		openContactsForm();
-		return;
-	}
-
-	openOrderForm();
+	openContactsForm();
 });
 
 events.on<{ field: 'email' | 'phone'; value: string }>(EVENTS.CONTACTS_FIELD_CHANGED, ({ field, value }) => {
@@ -277,12 +262,7 @@ events.on<{ field: 'email' | 'phone'; value: string }>(EVENTS.CONTACTS_FIELD_CHA
 });
 
 events.on(EVENTS.CONTACTS_SUBMIT, () => {
-	if (isContactsValid()) {
-		submitOrder();
-		return;
-	}
-
-	openContactsForm();
+	submitOrder();
 });
 
 events.on(EVENTS.MODAL_CLOSED, () => {
@@ -307,5 +287,4 @@ webLarekApi
 	})
 	.catch((error: unknown) => {
 		console.error('Ошибка загрузки каталога', error);
-		catalogModel.setItems(apiProducts.items);
 	});

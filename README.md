@@ -123,6 +123,14 @@ interface IProduct {
 - Описывает карточку товара, получаемую с API и используемую в каталоге и корзине.
 - Поле `price` может быть `null`, что обозначает недоступность товара для покупки.
 
+Поля интерфейса:
+- `id: string` — уникальный идентификатор товара.
+- `description: string` — подробное описание товара.
+- `image: string` — путь к изображению товара на CDN.
+- `title: string` — название товара в карточке.
+- `category: string` — категория товара (используется для текста и стиля бейджа).
+- `price: number | null` — цена товара, `null` означает недоступность к покупке.
+
 ### Тип способа оплаты
 
 ```ts
@@ -146,6 +154,12 @@ interface IBuyer {
 Назначение:
 - Описывает данные покупателя, заполняемые на форме оформления.
 
+Поля интерфейса:
+- `payment: TPayment` — выбранный способ оплаты.
+- `email: string` — email покупателя.
+- `phone: string` — телефон покупателя.
+- `address: string` — адрес доставки.
+
 ### Интерфейс ответа каталога
 
 ```ts
@@ -157,6 +171,10 @@ interface IProductsResponse {
 
 Назначение:
 - Описывает ответ API при загрузке каталога товаров.
+
+Поля интерфейса:
+- `total: number` — общее количество товаров в каталоге.
+- `items: IProduct[]` — массив карточек товаров.
 
 ### Интерфейс запроса заказа
 
@@ -171,6 +189,14 @@ interface IOrderRequest extends IBuyer {
 - Описывает payload, отправляемый на эндпоинт `/order/`.
 - Содержит данные покупателя, id выбранных товаров и итоговую сумму заказа.
 
+Поля интерфейса:
+- `payment: TPayment` — выбранный способ оплаты.
+- `email: string` — email покупателя.
+- `phone: string` — телефон покупателя.
+- `address: string` — адрес доставки.
+- `items: string[]` — массив id товаров, добавленных в заказ.
+- `total: number` — итоговая сумма заказа.
+
 ### Интерфейс ответа заказа
 
 ```ts
@@ -182,6 +208,10 @@ interface IOrderResponse {
 
 Назначение:
 - Описывает успешный ответ сервера после создания заказа.
+
+Поля интерфейса:
+- `id: string` — id созданного заказа.
+- `total: number` — подтвержденная сервером итоговая сумма.
 
 ## Модели данных
 
@@ -238,15 +268,15 @@ interface IOrderResponse {
 - `constructor(events: IEvents)`.
 
 Поля:
-- `data: Partial<IBuyer>` хранит текущие данные покупателя.
+- `data: TBuyerData` хранит текущие данные покупателя как полный объект.
+- `initialData: TBuyerData` хранит начальные пустые значения полей (`payment: ''`, `email: ''`, `phone: ''`, `address: ''`).
 
 Методы:
-- `setData(data: Partial<IBuyer>): void` обновляет часть данных без потери уже заполненных полей и эмитит `buyer:changed`.
 - `setPayment(payment: TPayment): void` сохраняет способ оплаты.
 - `setAddress(address: string): void` сохраняет адрес.
 - `setEmail(email: string): void` сохраняет email.
 - `setPhone(phone: string): void` сохраняет телефон.
-- `getData(): Partial<IBuyer>` возвращает данные покупателя.
+- `getData(): TBuyerData` возвращает полный объект данных покупателя.
 - `clear(): void` очищает данные покупателя и эмитит `buyer:changed`.
 - `validate(): Partial<Record<keyof IBuyer, string>>` валидирует все поля оформления и возвращает объект ошибок.
 
@@ -280,7 +310,7 @@ interface IOrderResponse {
 
 ## Слой представления (View)
 
-Компоненты слоя View не хранят бизнес-данные. Они получают данные через `render(...)`, изменяют разметку и эмитят пользовательские события через `EventEmitter`.
+Компоненты слоя View не хранят бизнес-данные. Они получают данные через `render(...)`, изменяют разметку и уведомляют презентер через `EventEmitter` или обработчики, переданные в конструктор.
 
 ### `Page`
 Назначение:
@@ -308,12 +338,12 @@ interface IOrderResponse {
 - Блокирует прокрутку подложки через `page__wrapper_locked`.
 
 Конструктор:
-- `constructor(container: HTMLElement, events: IEvents)`
+- `constructor(container: HTMLElement, pageWrapper: HTMLElement, events: IEvents)`
 
 Поля:
 - `closeButton: HTMLButtonElement` — кнопка закрытия.
 - `contentElement: HTMLElement` — контейнер контента модалки.
-- `pageWrapper?: HTMLElement` — блок страницы, который фиксируется при открытии.
+- `pageWrapper: HTMLElement` — блок страницы, который фиксируется при открытии.
 
 Методы:
 - `open(content: HTMLElement): void` — открывает модалку с контентом.
@@ -323,37 +353,33 @@ interface IOrderResponse {
 События:
 - При пользовательском закрытии эмитит `modal:close`.
 
-### Базовый класс карточек `ProductCard<T extends IProduct>`
+### Базовый класс карточек `ProductCard<T>`
 Назначение:
 - Содержит общий код для трёх шаблонов карточек (`card-catalog`, `card-preview`, `card-basket`).
-- Управляет общими полями: id, название, цена, категория, изображение.
+- Управляет только общими для всех карточек полями: название и цена.
 
 Конструктор:
 - `constructor(container: HTMLElement)`
 
 Поля:
-- `idValue: string`
 - `titleElement: HTMLElement`
 - `priceElement: HTMLElement`
-- `categoryElement?: HTMLElement`
-- `imageElement?: HTMLImageElement`
 
 Методы/сеттеры:
-- `set id(value: string)`
 - `set title(value: string)`
 - `set price(value: number | null)` (`null` отображается как `Бесценно`)
-- `set category(value: string)` — применяет модификатор из `categoryMap`
-- `set image(value: string)` — собирает URL на основе `CDN_URL`
 
 ### `CatalogCard`
 Назначение:
 - Карточка товара в каталоге на главной странице.
 
 Конструктор:
-- `constructor(container: HTMLElement, events: IEvents)`
+- `constructor(container: HTMLElement, actions: { onClick: () => void })`
 
-События:
-- Клик по карточке эмитит `card:selected` с `id`.
+Методы/сеттеры:
+- `set category(value: string)` — применяет модификатор из `categoryMap`.
+- `set image(value: string)` — собирает URL изображения на основе `CDN_URL`.
+- Клик по карточке вызывает переданный обработчик `actions.onClick`.
 
 ### `PreviewCard`
 Назначение:
@@ -368,18 +394,19 @@ interface IOrderResponse {
 
 Методы/сеттеры:
 - `set description(value: string)`
-- `set inBasket(value: boolean)` — переключает подпись кнопки `Купить`/`Удалить из корзины`
-- `set price(value: number | null)` — при `null` кнопка блокируется и меняет подпись на `Недоступно`
+- `set category(value: string)` — применяет модификатор из `categoryMap`.
+- `set image(value: string)` — собирает URL изображения на основе `CDN_URL`.
+- `setActionButton(text: string, disabled: boolean)` — устанавливает текст и состояние кнопки.
 
 События:
-- Клик по кнопке покупки/удаления эмитит `card:buy-toggle` с `id`.
+- Клик по кнопке покупки/удаления эмитит `card:buy-toggle` без дополнительных данных.
 
 ### `BasketCard`
 Назначение:
 - Компактная карточка товара внутри корзины.
 
 Конструктор:
-- `constructor(container: HTMLElement, events: IEvents)`
+- `constructor(container: HTMLElement, events: IEvents, itemId: string)`
 
 Поля:
 - `indexElement: HTMLElement`
@@ -387,7 +414,6 @@ interface IOrderResponse {
 
 Методы/сеттеры:
 - `set index(value: number)` — отображает номер позиции.
-- `render(data?: Partial<IBasketItemViewData>): HTMLElement`
 
 События:
 - Клик по кнопке удаления эмитит `basket:item-remove` с `id`.
@@ -444,8 +470,8 @@ interface IOrderResponse {
 - `paymentButtons: HTMLButtonElement[]`
 
 Методы/сеттеры:
-- `set payment(value: TPayment | undefined)` — выделяет активную кнопку оплаты классом `button_alt-active`
-- `set address(value: string | undefined)`
+- `set payment(value: TPayment | '')` — выделяет активную кнопку оплаты классом `button_alt-active`
+- `set address(value: string)`
 
 События:
 - Изменение адреса эмитит `order:field-change`.
@@ -460,8 +486,8 @@ interface IOrderResponse {
 - `constructor(container: HTMLElement, events: IEvents)`
 
 Методы/сеттеры:
-- `set email(value: string | undefined)`
-- `set phone(value: string | undefined)`
+- `set email(value: string)`
+- `set phone(value: string)`
 
 События:
 - Изменения полей эмитят `contacts:field-change`.
@@ -493,7 +519,6 @@ interface IOrderResponse {
 - `buyer:changed` — изменены данные покупателя.
 
 ### События, генерируемые представлением
-- `card:selected` — выбрана карточка для просмотра.
 - `card:buy-toggle` — нажата кнопка купить/удалить в превью товара.
 - `basket:open` — нажата кнопка открытия корзины.
 - `basket:item-remove` — нажата кнопка удаления товара из корзины.

@@ -22,15 +22,15 @@ export class OrderFormView extends FormView<IOrderFormViewData> {
 		});
 	}
 
-	set payment(value: TPayment | undefined) {
+	set payment(value: TPayment | '') {
 		this.paymentButtons.forEach((button) => {
-			const isActive = value !== undefined && button.name === value;
+			const isActive = button.name === value;
 			button.classList.toggle('button_alt-active', isActive);
 		});
 	}
 
-	set address(value: string | undefined) {
-		this.setInputValue('address', value ?? '');
+	set address(value: string) {
+		this.setInputValue('address', value);
 	}
 
 	protected handleFieldChange(name: string, value: string): void {

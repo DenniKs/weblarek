@@ -3,42 +3,46 @@ import { IBuyer, TPayment } from '../../types';
 import { EVENTS } from '../../utils/constants';
 
 export type TBuyerValidationErrors = Partial<Record<keyof IBuyer, string>>;
+type TBuyerData = Omit<IBuyer, 'payment'> & { payment: TPayment | '' };
 
 export class BuyerModel {
-	private data: Partial<IBuyer> = {};
+	private readonly initialData: TBuyerData = {
+		payment: '',
+		email: '',
+		phone: '',
+		address: '',
+	};
+	private data: TBuyerData = { ...this.initialData };
 
 	constructor(private readonly events: IEvents) {}
 
-	setData(data: Partial<IBuyer>): void {
-		this.data = {
-			...this.data,
-			...data,
-		};
+	private updateField<K extends keyof TBuyerData>(field: K, value: TBuyerData[K]): void {
+		this.data[field] = value;
 		this.events.emit(EVENTS.BUYER_CHANGED);
 	}
 
 	setPayment(payment: TPayment): void {
-		this.setData({ payment });
+		this.updateField('payment', payment);
 	}
 
 	setAddress(address: string): void {
-		this.setData({ address });
+		this.updateField('address', address);
 	}
 
 	setEmail(email: string): void {
-		this.setData({ email });
+		this.updateField('email', email);
 	}
 
 	setPhone(phone: string): void {
-		this.setData({ phone });
+		this.updateField('phone', phone);
 	}
 
-	getData(): Partial<IBuyer> {
+	getData(): TBuyerData {
 		return { ...this.data };
 	}
 
 	clear(): void {
-		this.data = {};
+		this.data = { ...this.initialData };
 		this.events.emit(EVENTS.BUYER_CHANGED);
 	}
 
