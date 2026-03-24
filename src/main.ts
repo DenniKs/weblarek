@@ -14,7 +14,7 @@ import { CatalogCard } from './components/view/cards/CatalogCard';
 import { PreviewCard } from './components/view/cards/PreviewCard';
 import { ContactsFormView } from './components/view/forms/ContactsFormView';
 import { OrderFormView } from './components/view/forms/OrderFormView';
-import { IOrderRequest, TPayment } from './types';
+import { IContactsFieldChange, IOrderFieldChange, IOrderRequest, TPayment } from './types';
 import { API_URL, EVENTS } from './utils/constants';
 import { cloneTemplate, ensureElement } from './utils/utils';
 
@@ -237,7 +237,7 @@ events.on(EVENTS.BASKET_CHECKOUT, () => {
 	openOrderForm();
 });
 
-events.on<{ field: 'address' | 'payment'; value: string }>(EVENTS.ORDER_FIELD_CHANGED, ({ field, value }) => {
+events.on<IOrderFieldChange>(EVENTS.ORDER_FIELD_CHANGED, ({ field, value }) => {
 	if (field === 'address') {
 		buyerModel.setAddress(value);
 	}
@@ -251,7 +251,7 @@ events.on(EVENTS.ORDER_SUBMIT, () => {
 	openContactsForm();
 });
 
-events.on<{ field: 'email' | 'phone'; value: string }>(EVENTS.CONTACTS_FIELD_CHANGED, ({ field, value }) => {
+events.on<IContactsFieldChange>(EVENTS.CONTACTS_FIELD_CHANGED, ({ field, value }) => {
 	if (field === 'email') {
 		buyerModel.setEmail(value);
 	}

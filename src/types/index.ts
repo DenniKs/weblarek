@@ -38,6 +38,18 @@ export interface IOrderResponse {
 }
 
 export type TBuyerStep = 'order' | 'contacts';
+export type TOrderField = 'address' | 'payment';
+export type TContactsField = 'email' | 'phone';
+
+export interface IOrderFieldChange {
+    field: TOrderField;
+    value: string;
+}
+
+export interface IContactsFieldChange {
+    field: TContactsField;
+    value: string;
+}
 
 export interface IAppEvents {
     'catalog:changed': void;
@@ -49,9 +61,9 @@ export interface IAppEvents {
     'basket:open': void;
     'basket:checkout': void;
     'basket:item-remove': { id: string };
-    'order:field-change': { field: 'address' | 'payment'; value: string };
+    'order:field-change': IOrderFieldChange;
     'order:submit': void;
-    'contacts:field-change': { field: 'email' | 'phone'; value: string };
+    'contacts:field-change': IContactsFieldChange;
     'contacts:submit': void;
     'modal:close': void;
     'success:close': void;

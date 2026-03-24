@@ -19,10 +19,6 @@ export class PreviewCard extends ProductCard<IPreviewCardViewData> {
 		this.actionButton = ensureElement<HTMLButtonElement>('.card__button', this.container);
 
 		this.actionButton.addEventListener('click', () => {
-			if (this.actionButton.disabled) {
-				return;
-			}
-
 			this.events.emit(EVENTS.CARD_BUY_TOGGLED);
 		});
 	}
@@ -44,10 +40,6 @@ export class PreviewCard extends ProductCard<IPreviewCardViewData> {
 
 	set description(value: string) {
 		this.descriptionElement.textContent = value;
-	}
-
-	override set price(value: number | null) {
-		super.price = value;
 	}
 
 	setActionButton(text: string, disabled: boolean): void {

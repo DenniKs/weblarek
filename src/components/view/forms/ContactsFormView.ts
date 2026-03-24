@@ -1,5 +1,5 @@
 import { IEvents } from '../../base/Events';
-import { IContactsFormViewData } from '../../../types';
+import { IContactsFieldChange, IContactsFormViewData } from '../../../types';
 import { EVENTS } from '../../../utils/constants';
 import { FormView } from './FormView';
 
@@ -21,7 +21,7 @@ export class ContactsFormView extends FormView<IContactsFormViewData> {
 			return;
 		}
 
-		this.events.emit<{ field: 'email' | 'phone'; value: string }>(EVENTS.CONTACTS_FIELD_CHANGED, {
+		this.events.emit<IContactsFieldChange>(EVENTS.CONTACTS_FIELD_CHANGED, {
 			field: name,
 			value,
 		});

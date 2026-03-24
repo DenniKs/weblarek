@@ -16,25 +16,24 @@ export class BuyerModel {
 
 	constructor(private readonly events: IEvents) {}
 
-	private updateField<K extends keyof TBuyerData>(field: K, value: TBuyerData[K]): void {
-		this.data[field] = value;
+	setPayment(payment: TPayment): void {
+		this.data.payment = payment;
 		this.events.emit(EVENTS.BUYER_CHANGED);
 	}
 
-	setPayment(payment: TPayment): void {
-		this.updateField('payment', payment);
-	}
-
 	setAddress(address: string): void {
-		this.updateField('address', address);
+		this.data.address = address;
+		this.events.emit(EVENTS.BUYER_CHANGED);
 	}
 
 	setEmail(email: string): void {
-		this.updateField('email', email);
+		this.data.email = email;
+		this.events.emit(EVENTS.BUYER_CHANGED);
 	}
 
 	setPhone(phone: string): void {
-		this.updateField('phone', phone);
+		this.data.phone = phone;
+		this.events.emit(EVENTS.BUYER_CHANGED);
 	}
 
 	getData(): TBuyerData {

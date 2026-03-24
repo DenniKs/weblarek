@@ -1,5 +1,5 @@
 import { IEvents } from '../../base/Events';
-import { IOrderFormViewData, TPayment } from '../../../types';
+import { IOrderFieldChange, IOrderFormViewData, TPayment } from '../../../types';
 import { EVENTS } from '../../../utils/constants';
 import { ensureElement } from '../../../utils/utils';
 import { FormView } from './FormView';
@@ -14,7 +14,7 @@ export class OrderFormView extends FormView<IOrderFormViewData> {
 
 		this.paymentButtons.forEach((button) => {
 			button.addEventListener('click', () => {
-				this.events.emit<{ field: 'address' | 'payment'; value: string }>(EVENTS.ORDER_FIELD_CHANGED, {
+				this.events.emit<IOrderFieldChange>(EVENTS.ORDER_FIELD_CHANGED, {
 					field: 'payment',
 					value: button.name,
 				});
@@ -38,7 +38,7 @@ export class OrderFormView extends FormView<IOrderFormViewData> {
 			return;
 		}
 
-		this.events.emit<{ field: 'address' | 'payment'; value: string }>(EVENTS.ORDER_FIELD_CHANGED, {
+		this.events.emit<IOrderFieldChange>(EVENTS.ORDER_FIELD_CHANGED, {
 			field: 'address',
 			value,
 		});

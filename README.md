@@ -140,6 +140,24 @@ type TPayment = 'card' | 'cash';
 Назначение:
 - Ограничивает допустимые значения способа оплаты на этапе оформления заказа.
 
+### Тип поля формы заказа
+
+```ts
+type TOrderField = 'address' | 'payment';
+```
+
+Назначение:
+- Ограничивает допустимые названия полей первого шага оформления.
+
+### Тип поля формы контактов
+
+```ts
+type TContactsField = 'email' | 'phone';
+```
+
+Назначение:
+- Ограничивает допустимые названия полей второго шага оформления.
+
 ### Интерфейс покупателя
 
 ```ts
@@ -212,6 +230,38 @@ interface IOrderResponse {
 Поля интерфейса:
 - `id: string` — id созданного заказа.
 - `total: number` — подтвержденная сервером итоговая сумма.
+
+### Интерфейс изменения поля формы заказа
+
+```ts
+interface IOrderFieldChange {
+  field: TOrderField;
+  value: string;
+}
+```
+
+Назначение:
+- Описывает payload события изменения полей первого шага оформления.
+
+Поля интерфейса:
+- `field: TOrderField` — имя изменённого поля (`address` или `payment`).
+- `value: string` — новое значение поля.
+
+### Интерфейс изменения поля формы контактов
+
+```ts
+interface IContactsFieldChange {
+  field: TContactsField;
+  value: string;
+}
+```
+
+Назначение:
+- Описывает payload события изменения полей второго шага оформления.
+
+Поля интерфейса:
+- `field: TContactsField` — имя изменённого поля (`email` или `phone`).
+- `value: string` — новое значение поля.
 
 ## Модели данных
 
@@ -524,8 +574,10 @@ interface IOrderResponse {
 - `basket:item-remove` — нажата кнопка удаления товара из корзины.
 - `basket:checkout` — нажата кнопка перехода к оформлению.
 - `order:field-change` — изменено поле формы первого шага.
+  - payload: `IOrderFieldChange`
 - `order:submit` — отправлена форма первого шага.
 - `contacts:field-change` — изменено поле формы второго шага.
+  - payload: `IContactsFieldChange`
 - `contacts:submit` — отправлена форма второго шага.
 - `modal:close` — пользователь закрыл модальное окно.
 - `success:close` — нажата кнопка закрытия успешного заказа.
